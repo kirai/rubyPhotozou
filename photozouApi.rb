@@ -7,8 +7,16 @@ require 'net/http'
 require 'base64'
 require 'pp'
 
+require "uri"
+
 Net::HTTP.version_1_2
 AGENT = 'photozouapi.rb/ruby/#{RUBY_VERSION}'
+
+USERID = '2507715'
+
+API_URI_BASE = 'http://api.photozou.jp/rest/'
+
+# photo_infoで遊んでみる
 
 def readPhotozou
   begin
@@ -46,4 +54,27 @@ end
 if !readPhotozou
   puts "error"
 end
+
+def query_to_uri(hash)
+  return hash.map{ |k,v| "#{k.to_s}=#{v}"}.join("&") 
+end
+
+def doHttpRequest(q,type)
+  uri = URI.parse(API_URI_BASE + type +"?#{query_to_uri(q)}")
+  req = Net::HTTP::Get.new("#{uri.path}?#{uri.query}")
+
+  Net::HTTP.start(uri.host){ |http|
+    response = http.request(req)
+    puts response.body
+  }
+end
+
+# photo_listで遊んでみる！
+q = { "type" => "album", "user_id" => USERID, "album_id" => '6712980', "limit" => 5 }
+doHttpRequest(q, 'photo_list_public')
+
+# photo_infoで遊んでみる
+
+q = { "photo_id" => 139348548 }
+doHttpRequest(q, 'photo_info')
 
