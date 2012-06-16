@@ -71,10 +71,19 @@ end
 
 # photo_listで遊んでみる！
 q = { "type" => "album", "user_id" => USERID, "album_id" => '6712980', "limit" => 5 }
-doHttpRequest(q, 'photo_list_public')
+#doHttpRequest(q, 'photo_list_public')
 
 # photo_infoで遊んでみる
 
 q = { "photo_id" => 139348548 }
-doHttpRequest(q, 'photo_info')
+#doHttpRequest(q, 'photo_info')
+
+#
+# Photozou Wrapper Class
+#
+class Photozou
+  def photo_list(q, type)
+    doHttpRequest(q, type)
+  end
+end
 
