@@ -13,20 +13,23 @@ describe "PhotozouApiClass" do
     photosXml.should =~ /.*photo.*/ 
   end
 
-  it "should return photo information when calling photo_info" do
-    q = { "photo_id" => 139780150 }
-    #response = @photo.photo_info(q)
-    response = $photozouApiLambda.call('photo_info', q)
-    response.should =~ /.*photo_id.*/
+  describe "GET requests" do
 
-  end
+    it "should return photo information when calling photo_info" do
+      q = { "photo_id" => 139780150 }
+      #response = @photo.photo_info(q)
+      response = $photozouApiLambda.call('photo_info', q)
+      response.should =~ /.*photo_id.*/
 
+    end
 
-  it "should return user information when calling user_info" do
-    q = { "user_id" => USERID }
-    response = $photozouApiLambda.call('user_info', q)
-    response.should =~ /.*user_id.*/
-
+    it "should return user information when calling user_info" do
+      q = { "user_id" => USERID }
+      #response = $photozouApiLambda.call('user_info', q)
+      #response = $user_info.call(q)
+      response = $photozouApiLambdaHash['user_info'].call(q)
+      response.should =~ /.*user_id.*/
+    end
   end
 
 end

@@ -17,7 +17,7 @@ def query_to_uri(hash)
   return hash.map{ |k,v| "#{k.to_s}=#{v}"}.join("&") 
 end
 
-def doHttpRequest(q,type)
+def doHttpRequest(q, type)
   uri = URI.parse(API_URI_BASE + type +"?#{query_to_uri(q)}")
   req = Net::HTTP::Get.new("#{uri.path}?#{uri.query}")
 
@@ -52,9 +52,20 @@ class Photozou
   def photo_list_public(q)
     return self.generic_call(q,self.getCurrentMethodName)
   end
+ 
+  def user_info(q)
+    return self.generic_call(q, self.getCurrentMethodName)
+  end
 
 end
 
 $photozouApiLambda = lambda { |methodName, q| doHttpRequest(q, methodName)}
 
+$photozouApiLambdaHash = { 'user_info'         => lambda { |q| doHttpRequest(q, 'user_info')},
+                           'photo_list_public' => lambda { |q| doHttpRequest(q, 'photo_list_public')}}
+
+
+#q = { "user_id" => USERID }
+#$user_info = lambda { |q| doHttpRequest(q, caller[0][/`([^']*)'/, 1])}
+#puts user_info.call(q)
 
