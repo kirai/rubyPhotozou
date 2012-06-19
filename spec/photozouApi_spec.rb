@@ -15,8 +15,18 @@ describe "PhotozouApiClass" do
 
   it "should return photo information when calling photo_info" do
     q = { "photo_id" => 139780150 }
-    response = @photo.photo_info(q)
+    #response = @photo.photo_info(q)
+    response = $photozouApiLambda.call('photo_info', q)
     response.should =~ /.*photo_id.*/
+
+  end
+
+
+  it "should return user information when calling user_info" do
+    q = { "user_id" => USERID }
+    response = $photozouApiLambda.call('user_info', q)
+    response.should =~ /.*user_id.*/
+
   end
 
 end
