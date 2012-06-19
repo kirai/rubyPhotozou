@@ -63,10 +63,14 @@ def doHttpRequest(q,type)
   uri = URI.parse(API_URI_BASE + type +"?#{query_to_uri(q)}")
   req = Net::HTTP::Get.new("#{uri.path}?#{uri.query}")
 
-  Net::HTTP.start(uri.host){ |http|
-    response = http.request(req)
-    puts response.body
-  }
+  begin
+    Net::HTTP.start(uri.host){ |http|
+      response = http.request(req)
+      return response.body
+    }
+  rescue Timeout::Error => e
+    return nil
+  end
 end
 
 # photo_listで遊んでみる！
@@ -82,8 +86,21 @@ q = { "photo_id" => 139348548 }
 # Photozou Wrapper Class
 #
 class Photozou
-  def photo_list(q, type)
-    doHttpRequest(q, type)
+  def generic_call(q, type)
+    response = doHttpRequest(q, type)
+    return response
+  end
+
+  def getCurrentMethodName
+   caller[0][/`([^']*)'/, 1]
+  end
+
+  # Photozou API Methods
+  def photo_info(q)
+    return self.generic_call(q, self.getCurrentMethodName)
+  end
+
+  def photo_list_public(q)
+    return self.generic_call(q,self.getCurrentMethodName)
   end
 end
-
