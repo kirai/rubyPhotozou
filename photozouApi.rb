@@ -6,12 +6,20 @@ require 'rexml/document'
 require 'net/http'
 require 'base64'
 require 'pp'
-require "uri"
+require 'uri'
+require 'nokogiri'
 
 Net::HTTP.version_1_2
 AGENT = 'photozouapi.rb/ruby/#{RUBY_VERSION}'
 USERID = '2507715'
 API_URI_BASE = 'http://api.photozou.jp/rest/'
+
+class Photozou
+  def self.user_info args
+    response = Nokogiri::XML open("http://api.photozou.jp/rest/user_info?user_id=#{args[:user_id]}")
+    response.at_xpath("//rsp//info//user").children.inject({}) {|h, e| h[e.name.to_sym] = e.text if e.name != 'text'; h}
+  end
+end
 
 def query_to_uri(hash)
   return hash.map{ |k,v| "#{k.to_s}=#{v}"}.join("&") 
@@ -20,7 +28,6 @@ end
 def doHttpRequest(q, type)
   uri = URI.parse(API_URI_BASE + type +"?#{query_to_uri(q)}")
   req = Net::HTTP::Get.new("#{uri.path}?#{uri.query}")
-
   begin
     Net::HTTP.start(uri.host){ |http|
       response = http.request(req)
@@ -34,7 +41,7 @@ end
 #
 # Photozou Wrapper Class
 #
-class Photozou
+class PhotozouB
   def generic_call(q, type)
     response = doHttpRequest(q, type)
     return response
