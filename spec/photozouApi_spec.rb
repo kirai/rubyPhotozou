@@ -71,8 +71,6 @@ describe "PhotozouApiClass" do
          args = { "type" => "album", "user_id" => USERID, "album_id" => '6712980', "limit" => 5 }
          photo_list = Photozou.photo_list_public(args)
          photo_list[0][:photo_id].should == @photo_list[0][:photo_id]
-         #photo_list[1][:album_id].should == @photo_list[1][:album_id]
-         
       end
   end
 

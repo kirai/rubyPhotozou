@@ -35,23 +35,26 @@ end
 
 class Photozou
 
+  def self.callApi(endpointName, args)
+    begin
+      return Nokogiri::XML open(API_URI_BASE + endpointName + "?" + PhotozouHelper.hashToHttpStr(args), "User-Agent" => AGENT)
+    rescue OpenURI::HTTPError => error
+      PhotozouHelper.printError(endpointName, PhotozouHelper.hashToHttpStr(args), error)
+      return false
+    end
+  end
+
   # Endpoint: http://api.photozou.jp/rest/user_info
   # 概要: インターネットに公開されている写真の詳細情報を取得します。
   # 認証: 認証の必要はありません。
   # HTTPメソッド: GET/POST
 
   def self.user_info args
-    begin
-      response = Nokogiri::XML open(API_URI_BASE + PhotozouHelper.getCurrentMethodName + "?" + PhotozouHelper.hashToHttpStr(args), 
-                                    "User-Agent" => AGENT)
-    rescue OpenURI::HTTPError => error 
-       PhotozouHelper.printError(PhotozouHelper.getCurrentMethodName, PhotozouHelper.hashToHttpStr(args), error)
-       return false
+    response = Photozou.callApi(PhotozouHelper.getCurrentMethodName, args)
+    if response
+      response.at_xpath("//rsp//info//user").children.inject({}) {|h, e| h[e.name.to_sym] = e.text if e.name != 'text'; h}
     end
-
-    response.at_xpath("//rsp//info//user").children.inject({}) {|h, e| h[e.name.to_sym] = e.text if e.name != 'text'; h}
   end
-
 
   # Endpoint: http://api.photozou.jp/rest/photo_info
   # 概要: インターネットに公開されている写真の詳細情報を取得します。
@@ -59,14 +62,10 @@ class Photozou
   # HTTPメソッド: GET/POST
 
   def self.photo_info args
-     begin
-      response = Nokogiri::XML open(API_URI_BASE + PhotozouHelper.getCurrentMethodName + "?" + PhotozouHelper.hashToHttpStr(args),
-                                   "User-Agent" => AGENT)
-     rescue OpenURI::HTTPError => error
-       PhotozouHelper.printError(PhotozouHelper.getCurrentMethodName, PhotozouHelper.hashToHttpStr(args), error)
-       return false
-     end
-     response.at_xpath("//rsp//info//photo").children.inject({}) {|h, e| h[e.name.to_sym] = e.text; h}
+    response = Photozou.callApi(PhotozouHelper.getCurrentMethodName, args)
+    if response
+      response.at_xpath("//rsp//info//photo").children.inject({}) {|h, e| h[e.name.to_sym] = e.text; h}
+    end  
   end
 
   # Endpoint: http://api.photozou.jp/rest/photo_list_public  
@@ -75,14 +74,8 @@ class Photozou
   # HTTPメソッド: GET
 
   def self.photo_list_public args
-    begin
-     response = Nokogiri::XML open(API_URI_BASE + PhotozouHelper.getCurrentMethodName + "?" + PhotozouHelper.hashToHttpStr(args),
-                                   "User-Agent" => AGENT)
-    rescue OpenURI::HTTPError => error
-      PhotozouHelper.printError(PhotozouHelper.getCurrentMethodName, PhotozouHelper.hashToHttpStr(args), error)
-      return false
-    end
-    
+    response = Photozou.callApi(PhotozouHelper.getCurrentMethodName, args)     
+     
     photos = []
     response.at_xpath("//rsp//info").children.each do |x|
       photo = x.at_xpath("//photo").children.inject({}) {|h, e| h[e.name.to_sym] = e.text; h}
@@ -97,22 +90,15 @@ class Photozou
   # HTTPメソッド: GET/POST
 
   def self.search_public args
-    begin
-     response = Nokogiri::XML open(API_URI_BASE + PhotozouHelper.getCurrentMethodName + "?" + PhotozouHelper.hashToHttpStr(args), "User-Agent" => AGENT)
-    rescue OpenURI::HTTPError => error
-      PhotozouHelper.printError(PhotozouHelper.getCurrentMethodName, PhotozouHelper.hashToHttpStr(args), error)
-      return false
-    end
-    
+    response = Photozou.callApi(PhotozouHelper.getCurrentMethodName, args)     
+        
     photos = []
     response.at_xpath("//rsp//info").children.each do |x|
       photo = x.at_xpath("//photo").children.inject({}) {|h, e| h[e.name.to_sym] = e.text; h}
       photos << photo
     end
-    return photos
-
+    photos
   end
-
 
 end
 
