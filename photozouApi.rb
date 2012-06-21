@@ -17,12 +17,22 @@ class PhotozouHelper
   def self.hashToHttpStr hash
     return hash.map{ |k,v| "#{k.to_s}=#{v}"}.join("&")
   end
+  def self.getCurrentMethodName
+   caller[0][/`([^']*)'/, 1]
+  end
+
 end
 
 class Photozou
+
+  # Endpoint: http://api.photozou.jp/rest/user_info
+  # 概要: インターネットに公開されている写真の詳細情報を取得します。
+  # 認証: 認証の必要はありません。
+  # HTTPメソッド: GET/POST
+
   def self.user_info args
     begin
-      response = Nokogiri::XML open(API_URI_BASE + "user_info?user_id=#{args[:user_id]}", 
+      response = Nokogiri::XML open(API_URI_BASE + PhotozouHelper.getCurrentMethodName + "?" + PhotozouHelper.hashToHttpStr(args), 
                                     "User-Agent" => AGENT)
     rescue
        return false
@@ -31,8 +41,14 @@ class Photozou
     response.at_xpath("//rsp//info//user").children.inject({}) {|h, e| h[e.name.to_sym] = e.text if e.name != 'text'; h}
   end
 
+
+  # Endpoint: http://api.photozou.jp/rest/photo_info
+  # 概要: インターネットに公開されている写真の詳細情報を取得します。
+  # 認証: 認証の必要はありません。
+  # HTTPメソッド: GET/POST
+
   def self.photo_info args
-     response = Nokogiri::XML open(API_URI_BASE + "photo_info?photo_id=#{args[:photo_id]}",
+     response = Nokogiri::XML open(API_URI_BASE + PhotozouHelper.getCurrentMethodName + "?" + PhotozouHelper.hashToHttpStr(args),
                                    "User-Agent" => AGENT)
      response.at_xpath("//rsp//info//photo").children.inject({}) {|h, e| h[e.name.to_sym] = e.text; h}
   end
@@ -43,7 +59,7 @@ class Photozou
   # HTTPメソッド: GET
 
   def self.photo_list_public args
-     response = Nokogiri::XML open(API_URI_BASE + "photo_list_public?" + PhotozouHelper.hashToHttpStr(args),
+     response = Nokogiri::XML open(API_URI_BASE + PhotozouHelper.getCurrentMethodName + "?" + PhotozouHelper.hashToHttpStr(args),
                                    "User-Agent" => AGENT)
      photos = []
      response.at_xpath("//rsp//info").children.each do |x|
