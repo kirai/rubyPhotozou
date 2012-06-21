@@ -25,6 +25,12 @@ describe "PhotozouApiClass" do
       user_info = Photozou.user_info( { :user_id => USERID } )
       user_info['user_id'].should == @user_info['user_id']
     end
+
+     it "raises and exception when the parameters are not correct" do
+        Photozou.photo_info( { :bad_request_userrrr => 139780150 } ).should raise_error
+
+     end
+
   end
 
 
@@ -40,6 +46,12 @@ describe "PhotozouApiClass" do
         photo_info = Photozou.photo_info( { :photo_id => 139780150 } )
         photo_info['photo_id'].should == @photo_info['photo_id']
         photo_info['copyright'].should == @photo_info['copyright']
+
+     end
+
+
+     it "raises and exception when the parameters are not correct" do
+        Photozou.photo_info( { :bad_request_photo_id => 139780150 } ).should raise_error
 
      end
   end

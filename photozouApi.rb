@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+#
+# TODO 改善: http://d.hatena.ne.jp/kitamomonga/20080314/openuriwith304
+#
+
 require 'rubygems'
 require 'open-uri'
 require 'net/http'
@@ -17,10 +21,16 @@ class PhotozouHelper
   def self.hashToHttpStr hash
     return hash.map{ |k,v| "#{k.to_s}=#{v}"}.join("&")
   end
+
   def self.getCurrentMethodName
    caller[0][/`([^']*)'/, 1]
   end
-
+  
+  def self.printError(type, args, error)
+     puts 'Error while trying to use:' + type 
+     puts 'with parameters ' + args
+     puts error
+  end
 end
 
 class Photozou
@@ -34,7 +44,8 @@ class Photozou
     begin
       response = Nokogiri::XML open(API_URI_BASE + PhotozouHelper.getCurrentMethodName + "?" + PhotozouHelper.hashToHttpStr(args), 
                                     "User-Agent" => AGENT)
-    rescue
+    rescue OpenURI::HTTPError => error 
+       PhotozouHelper.printError(PhotozouHelper.getCurrentMethodName, PhotozouHelper.hashToHttpStr(args), error)
        return false
     end
 
@@ -48,8 +59,13 @@ class Photozou
   # HTTPメソッド: GET/POST
 
   def self.photo_info args
-     response = Nokogiri::XML open(API_URI_BASE + PhotozouHelper.getCurrentMethodName + "?" + PhotozouHelper.hashToHttpStr(args),
+     begin
+      response = Nokogiri::XML open(API_URI_BASE + PhotozouHelper.getCurrentMethodName + "?" + PhotozouHelper.hashToHttpStr(args),
                                    "User-Agent" => AGENT)
+     rescue OpenURI::HTTPError => error
+       PhotozouHelper.printError(PhotozouHelper.getCurrentMethodName, PhotozouHelper.hashToHttpStr(args), error)
+       return false
+     end
      response.at_xpath("//rsp//info//photo").children.inject({}) {|h, e| h[e.name.to_sym] = e.text; h}
   end
 
@@ -59,14 +75,20 @@ class Photozou
   # HTTPメソッド: GET
 
   def self.photo_list_public args
+    begin
      response = Nokogiri::XML open(API_URI_BASE + PhotozouHelper.getCurrentMethodName + "?" + PhotozouHelper.hashToHttpStr(args),
                                    "User-Agent" => AGENT)
-     photos = []
-     response.at_xpath("//rsp//info").children.each do |x|
-        photo = x.at_xpath("//photo").children.inject({}) {|h, e| h[e.name.to_sym] = e.text; h}
-        photos << photo
-     end
-     photos
+    rescue OpenURI::HTTPError => error
+      PhotozouHelper.printError(PhotozouHelper.getCurrentMethodName, PhotozouHelper.hashToHttpStr(args), error)
+      return false
+    end
+    
+    photos = []
+    response.at_xpath("//rsp//info").children.each do |x|
+      photo = x.at_xpath("//photo").children.inject({}) {|h, e| h[e.name.to_sym] = e.text; h}
+      photos << photo
+    end
+    photos
   end
 
 end
