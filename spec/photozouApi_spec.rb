@@ -57,7 +57,7 @@ describe "PhotozouApiClass" do
   end
 
 
-  describe "Photo List Public GET" do
+  describe "Photo List Public GET. photo_list_public" do
       before(:each) do
         @photo_list = {
           0 => {:photo_id => "140049756",
@@ -76,6 +76,18 @@ describe "PhotozouApiClass" do
       end
   end
 
+  describe "Search Public GET. search_public" do
+    before(:each) do
+      @search_results = {}
+    end
+   
+    #TODO improve this test, make it more specific 
+    it "return a hash with the search results" do
+      args = { "keyword" => "tokyo" }
+      response = Photozou.search_public(args)
+      response.should_not be_empty
+    end
+  end
 
   it "should return album photos when calling photo_list" do
     q = { "type" => "album", "user_id" => USERID, "album_id" => '6712980', "limit" => 5 }

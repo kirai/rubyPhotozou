@@ -91,6 +91,29 @@ class Photozou
     photos
   end
 
+  # Endpoint: http://api.photozou.jp/rest/search_public  
+  # 概要: インターネットに公開されている写真を検索します。
+  # 認証: 認証の必要はありません。
+  # HTTPメソッド: GET/POST
+
+  def self.search_public args
+    begin
+     response = Nokogiri::XML open(API_URI_BASE + PhotozouHelper.getCurrentMethodName + "?" + PhotozouHelper.hashToHttpStr(args), "User-Agent" => AGENT)
+    rescue OpenURI::HTTPError => error
+      PhotozouHelper.printError(PhotozouHelper.getCurrentMethodName, PhotozouHelper.hashToHttpStr(args), error)
+      return false
+    end
+    
+    photos = []
+    response.at_xpath("//rsp//info").children.each do |x|
+      photo = x.at_xpath("//photo").children.inject({}) {|h, e| h[e.name.to_sym] = e.text; h}
+      photos << photo
+    end
+    return photos
+
+  end
+
+
 end
 
 def query_to_uri(hash)
