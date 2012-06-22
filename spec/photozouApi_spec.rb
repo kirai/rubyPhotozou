@@ -4,10 +4,6 @@ require 'rspec'
 
 describe "PhotozouApiClass" do
  
-  before :each do
-    @photo = PhotozouB.new
-  end
-
   describe "User Info GET" do
 
     before(:each) do
@@ -52,7 +48,7 @@ describe "PhotozouApiClass" do
 
      it "raises and exception when the parameters are not correct" do
         Photozou.photo_info( { :bad_request_photo_id => 139780150 } ).should raise_error
-
+        
      end
   end
 
@@ -87,27 +83,22 @@ describe "PhotozouApiClass" do
     end
   end
 
-  it "should return album photos when calling photo_list" do
-    q = { "type" => "album", "user_id" => USERID, "album_id" => '6712980', "limit" => 5 }
-    photosXml        = @photo.photo_list_public(q)
-    photosXml.should =~ /.*photo.*/ 
+
+  describe "Photo Add POST. photo_add" do
+    it "should upload a picture when sending correct paramters to photo_add" do
+      pictureName = 'testpicture.jpg'
+      pictureData = File.open(pictureName,"rb") {|io| io.read}
+      #p pictureData
+      args = {"album_id" => "6712980",
+              "photo"    => pictureData}
+      response = Photozou.photo_add(args)
+
+    end
   end
 
-  describe "GET requests" do
-
-    it "should return photo information when calling photo_info" do
-      q = { "photo_id" => 139780150 }
-      #response = @photo.photo_info(q)
-      response = $photozouApiLambda.call('photo_info', q)
-      response.should =~ /.*photo_id.*/
-    end
-
-    it "should return user information when calling user_info" do
-      q = { "user_id" => USERID }
-      #response = $photozouApiLambda.call('user_info', q)
-      #response = $user_info.call(q)
-      response = $photozouApiLambdaHash['user_info'].call(q)
-      response.should =~ /.*user_id.*/
+  describe "nop ユーザー認証 test" do
+    it "nop returns user_id if the user is logged in" do
+       p Photozou.nop
     end
   end
 
