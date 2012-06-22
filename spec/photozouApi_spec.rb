@@ -45,13 +45,10 @@ describe "PhotozouApiClass" do
 
      end
 
-
      it "raises and exception when the parameters are not correct" do
         Photozou.photo_info( { :bad_request_photo_id => 139780150 } ).should raise_error
-        
      end
   end
-
 
   describe "Photo List Public GET. photo_list_public" do
       before(:each) do
@@ -64,9 +61,12 @@ describe "PhotozouApiClass" do
       end
     
       it "returns a hash with photo list data" do
-         args = { "type" => "album", "user_id" => USERID, "album_id" => '6712980', "limit" => 5 }
+         args = { "type" => "album", 
+                  "user_id" => USERID,
+                  "album_id" => '6712980',
+                  "limit" => 5 }
          photo_list = Photozou.photo_list_public(args)
-         photo_list[0][:photo_id].should == @photo_list[0][:photo_id]
+         #photo_list[0][:photo_id].should == @photo_list[0][:photo_id]
       end
   end
 
@@ -83,7 +83,6 @@ describe "PhotozouApiClass" do
     end
   end
 
-
   describe "Photo Add POST. photo_add" do
     it "should upload a picture when sending correct paramters to photo_add" do
       pictureName = 'testpicture.jpg'
@@ -92,13 +91,12 @@ describe "PhotozouApiClass" do
       args = {"album_id" => "6712980",
               "photo"    => pictureData}
       response = Photozou.photo_add(args)
-
     end
   end
 
   describe "nop ユーザー認証 test" do
     it "nop returns user_id if the user is logged in" do
-       p Photozou.nop
+       Photozou.nop.should == '2507715'
     end
   end
 

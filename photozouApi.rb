@@ -6,16 +6,15 @@
 
 require 'rubygems'
 require 'open-uri'
-require 'net/http'
-require 'base64'
-require 'pp'
 require 'uri'
 require 'nokogiri'
 
-Net::HTTP.version_1_2
 AGENT = 'photozouapi.rb/ruby/#{RUBY_VERSION}'
 USERID = '2507715'
 API_URI_BASE = 'http://api.photozou.jp/rest/'
+
+USER   = ''
+PASSWD = ''
 
 class PhotozouHelper
   def self.hashToHttpStr hash
@@ -31,14 +30,33 @@ class PhotozouHelper
      puts 'with parameters ' + args
      puts error
   end
+
+  def self.needsAutentification(endpointName)
+    if endpointName == 'photo_add' || 
+       endpointName == 'nop'
+      return true
+    else
+      return false
+    end
+  end
 end
 
 class Photozou
 
   def self.callApi(endpointName, args)
     begin
-      return Nokogiri::XML open(API_URI_BASE + endpointName + "?" + PhotozouHelper.hashToHttpStr(args), "User-Agent" => AGENT)
+      uri = API_URI_BASE + endpointName + "?" + PhotozouHelper.hashToHttpStr(args)
+
+      if PhotozouHelper.needsAutentification(endpointName)
+        return Nokogiri::XML open(uri, {:http_basic_authentication => [USER, PASSWD], 
+                                     "User-Agent" => AGENT}) 
+      else
+        return Nokogiri::XML open(uri, "User-Agent" => AGENT)
+      end
     rescue OpenURI::HTTPError => error
+      PhotozouHelper.printError(endpointName, PhotozouHelper.hashToHttpStr(args), error)
+      return false
+    rescue Timeout::Error => error
       PhotozouHelper.printError(endpointName, PhotozouHelper.hashToHttpStr(args), error)
       return false
     end
@@ -121,9 +139,9 @@ class Photozou
 
   def self.nop
     response = Photozou.callApi(PhotozouHelper.getCurrentMethodName, {})         
-    puts response
+    
     if response.at_xpath("//rsp//info/user_id")
-      return true
+      return response.at_xpath("//rsp//info/user_id").children  
     else
       return false
     end
