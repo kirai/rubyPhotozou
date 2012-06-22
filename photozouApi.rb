@@ -6,13 +6,16 @@
 
 require 'rubygems'
 require 'open-uri'
+require 'net/http'
 require 'uri'
 require 'nokogiri'
+require 'rest_client'
+require 'net/http/post/multipart'
 
+Net::HTTP.version_1_2
 AGENT = 'photozouapi.rb/ruby/#{RUBY_VERSION}'
 USERID = '2507715'
 API_URI_BASE = 'http://api.photozou.jp/rest/'
-
 USER   = ''
 PASSWD = ''
 
@@ -44,13 +47,38 @@ end
 class Photozou
 
   def self.callApi(endpointName, args)
+    #TODO: handle the correct content_types for the photo upload
+    #画像をアップロードする場合は、次のいずれかを指定します。
+    #image/gif
+    #image/jpeg
+    #image/pjpeg
+    #image/png
+    #image/x-png
     begin
-      uri = API_URI_BASE + endpointName + "?" + PhotozouHelper.hashToHttpStr(args)
+      if PhotozouHelper.needsAutentification(endpointName) # POST Requests
+        uri    = API_URI_BASE + endpointName
+        params = args
+        
+        url = URI.parse(uri)
+        File.open(args['photo'], "rb") do |jpg|
+          req = Net::HTTP::Post::Multipart.new(url.path, {"photo" => UploadIO.new(jpg, "image/jpeg", args['photo']), "album_id" => args['album_id']})
+          req.basic_auth USER, PASSWD
+          res = Net::HTTP.start(url.host, url.port) do |http|
+            http.request(req)
+          end
+          #puts res.body
+          # TODO Handle response Error codes if res.class.superclass == Net::HTTPSuccess nuuu else aaa...
+          return Nokogiri::XML(res.body)
+        end
 
-      if PhotozouHelper.needsAutentification(endpointName)
-        return Nokogiri::XML open(uri, {:http_basic_authentication => [USER, PASSWD], 
-                                     "User-Agent" => AGENT}) 
-      else
+#       Basic autentification for a GET request (Works for "nop"
+#        return Nokogiri::XML open(uri, {:http_basic_authentication => [USER, PASSWD], 
+
+#                                        "User-Agent" => AGENT}) 
+      
+      else # GET Requests
+        uri = API_URI_BASE + endpointName + "?" + PhotozouHelper.hashToHttpStr(args)
+
         return Nokogiri::XML open(uri, "User-Agent" => AGENT)
       end
     rescue OpenURI::HTTPError => error
@@ -118,16 +146,18 @@ class Photozou
     photos
   end
 
-
   # Endpoint: http://api.photozou.jp/rest/photo_add  
   # 概要: 写真を追加します。
   #       データはPOSTメソッドでContent-Typeをすべて小文字で設定して
   #       送信する必要があります。データの最大サイズは、写真10MBです。
   # 認証: このメソッドは、認証が必要です。
   # HTTPメソッド: POST
+  # CURL: curl -X POST --user username:password 
+  #       -F "album_id=アルバムID" -F "photo=@photo.jpg" 
+  #       http://api.photozou.jp/rest/photo_add
 
   def self.photo_add args
-    
+    response = Photozou.callApi(PhotozouHelper.getCurrentMethodName, args) 
     return false 
   end
 
