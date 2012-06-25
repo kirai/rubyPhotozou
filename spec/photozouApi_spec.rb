@@ -29,7 +29,6 @@ describe "PhotozouApiClass" do
 
   end
 
-
   describe "Photo Info GET" do
      before(:each) do
        @photo_info = {

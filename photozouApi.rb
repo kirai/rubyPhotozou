@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# TODO 改善: http://d.hatena.ne.jp/kitamomonga/20080314/openuriwith304
-#
+# TODO 改善 cache 304: http://d.hatena.ne.jp/kitamomonga/20080314/openuriwith304
+# Inspire: http://rbc-incubator.googlecode.com/svn/jmurabe/plugins/trunk/photozou_api_helper/lib/photozou_api.rb
+# Inspire Python: http://weboo-returns.com/blog/photozou-api-library-for-python/
 
 require 'rubygems'
 require 'open-uri'
@@ -16,8 +17,8 @@ Net::HTTP.version_1_2
 AGENT = 'photozouapi.rb/ruby/#{RUBY_VERSION}'
 USERID = '2507715'
 API_URI_BASE = 'http://api.photozou.jp/rest/'
-USER   = ''
-PASSWD = ''
+USER   = 'hectorgarcia@gmail.com'
+PASSWD = 'Yoshiko.47'
 
 class PhotozouHelper
   def self.hashToHttpStr hash
@@ -53,7 +54,7 @@ class Photozou
     #image/jpeg
     #image/pjpeg
     #image/png
-    #image/x-png
+    #image/x-png http://d.hatena.ne.jp/hygeta/20111105/1320494187
     begin
       if PhotozouHelper.needsAutentification(endpointName) # POST Requests
         uri    = API_URI_BASE + endpointName
@@ -66,14 +67,17 @@ class Photozou
           res = Net::HTTP.start(url.host, url.port) do |http|
             http.request(req)
           end
-          #puts res.body
-          # TODO Handle response Error codes if res.class.superclass == Net::HTTPSuccess nuuu else aaa...
-          return Nokogiri::XML(res.body)
+                 
+          case res
+            when Net::HTTPSuccess, Net::HTTPRedirection
+              return Nokogiri::XML(res.body)
+            else
+              res.value  # TODO Handle response Error codes http://jp.rubyist.net/magazine/?0013-BundledLibraries
+          end
         end
 
 #       Basic autentification for a GET request (Works for "nop"
 #        return Nokogiri::XML open(uri, {:http_basic_authentication => [USER, PASSWD], 
-
 #                                        "User-Agent" => AGENT}) 
       
       else # GET Requests
@@ -178,12 +182,4 @@ class Photozou
   end
   
 end
-
-
-#$photozouApiLambda = lambda { |methodName, q| doHttpRequest(q, methodName)}
-
-#$photozouApiLambdaHash = { 'user_info'         => lambda { |q| doHttpRequest(q, 'user_info')},
-#                           'photo_list_public' => lambda { |q| doHttpRequest(q, 'photo_list_public')}}
-
-
 
