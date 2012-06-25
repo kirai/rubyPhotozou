@@ -17,8 +17,8 @@ Net::HTTP.version_1_2
 AGENT = 'photozouapi.rb/ruby/#{RUBY_VERSION}'
 USERID = '2507715'
 API_URI_BASE = 'http://api.photozou.jp/rest/'
-USER   = 'hectorgarcia@gmail.com'
-PASSWD = 'Yoshiko.47'
+USER   = 'hector@gmail.com'
+PASSWD = 'YoshiMarioKart'
 
 class PhotozouHelper
   def self.hashToHttpStr hash
