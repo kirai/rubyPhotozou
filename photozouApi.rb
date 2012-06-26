@@ -17,8 +17,8 @@ Net::HTTP.version_1_2
 AGENT = 'photozouapi.rb/ruby/#{RUBY_VERSION}'
 USERID = '2507715'
 API_URI_BASE = 'http://api.photozou.jp/rest/'
-USER   = 'hector@gmail.com'
-PASSWD = 'YoshiMarioKart'
+USER   = ''
+PASSWD = ''
 
 class PhotozouHelper
   def self.hashToHttpStr hash
@@ -43,6 +43,7 @@ class PhotozouHelper
       return false
     end
   end
+
 end
 
 class Photozou
@@ -148,6 +149,15 @@ class Photozou
       photos << photo
     end
     photos
+  end
+
+  def self.xml_to_hash xml
+ 
+    response = {}
+    response[:photos] = Nokogiri::XML(xml).xpath("//rsp//info//photo")
+
+    response[:photo_num] = Nokogiri::XML(xml).at_xpath("//rsp//info//photo_num").text.to_i
+    response 
   end
 
   # Endpoint: http://api.photozou.jp/rest/photo_add  

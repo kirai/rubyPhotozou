@@ -90,7 +90,7 @@ describe "PhotozouApiClass" do
       args = {"album_id" => "6712980",
               "photo"    => pictureName}
 
-      response = Photozou.photo_add(args)
+      #response = Photozou.photo_add(args)
       #response.should =~ /.*large_tag.*/  
      end
   end
@@ -99,6 +99,25 @@ describe "PhotozouApiClass" do
     it "nop returns user_id if the user is logged in" do
        #Photozou.nop.should == '2507715'
     end
+  end
+
+  describe "Transform XML results to hash" do
+      before (:each) do
+        @response = Photozou.xml_to_hash open("photozou_search_public_results.xml").read
+      end
+
+      it "returns a hash with the correct photo_num" do
+        @response[:photo_num].should == 100
+      end
+
+     it "returns a hash with an array of photos" do
+        @response[:photos].count.should == 100
+      end
+    
+      it "returns a hash for each photo in :photos" do
+        photo_hash_keys = [:photo_id, :user_id, :album_id, :photo_title, :date, :url, :original_imag_url]
+        photo_hash_keys.each {|key| @response[:photos][11].has_key?(key).should be_true }
+      end
   end
 
 end
