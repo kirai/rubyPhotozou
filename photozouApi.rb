@@ -12,6 +12,7 @@ require 'uri'
 require 'nokogiri'
 require 'rest_client'
 require 'net/http/post/multipart'
+require 'pp'
 
 Net::HTTP.version_1_2
 AGENT = 'photozouapi.rb/ruby/#{RUBY_VERSION}'
@@ -19,6 +20,24 @@ USERID = '2507715'
 API_URI_BASE = 'http://api.photozou.jp/rest/'
 USER   = ''
 PASSWD = ''
+
+
+
+class Nokogiri::XML::Node
+  TYPENAMES = {1=>'element',2=>'attribute',3=>'text',4=>'cdata',8=>'comment'}
+  def to_hash
+    {kind:TYPENAMES[node_type],name:name}.tap do |h|
+      h.merge! nshref:namespace.href, nsprefix:namespace.prefix if namespace
+      h.merge! text:text
+      h.merge! attr:attribute_nodes.map(&:to_hash) if element?
+      h.merge! kids:children.map(&:to_hash) if element?
+    end
+  end
+end
+class Nokogiri::XML::Document
+  def to_hash; root.to_hash; end
+end
+
 
 class PhotozouHelper
   def self.hashToHttpStr hash
@@ -154,8 +173,17 @@ class Photozou
   def self.xml_to_hash xml
  
     response = {}
-    response[:photos] = Nokogiri::XML(xml).xpath("//rsp//info//photo")
+#    response[:photos] = Nokogiri::XML(xml).xpath("//rsp//info//photo").to_hash
+    response[:photos] = Nokogiri::XML(xml).to_hash
 
+#puts response[:photos]
+response[:photos].each do |p|
+   p.each do |b| 
+      puts b
+      #puts "\n"
+   end
+  # break
+end
     response[:photo_num] = Nokogiri::XML(xml).at_xpath("//rsp//info//photo_num").text.to_i
     response 
   end
