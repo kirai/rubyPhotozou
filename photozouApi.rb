@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 #
 # TODO 改善 cache 304: http://d.hatena.ne.jp/kitamomonga/20080314/openuriwith304
 # Inspire: http://rbc-incubator.googlecode.com/svn/jmurabe/plugins/trunk/photozou_api_helper/lib/photozou_api.rb
@@ -13,31 +12,29 @@ require 'nokogiri'
 require 'rest_client'
 require 'net/http/post/multipart'
 require 'pp'
+require 'active_support/dependencies'
+require 'active_support'
+require 'active_support/core_ext'
+require 'yaml'
 
 Net::HTTP.version_1_2
 AGENT = 'photozouapi.rb/ruby/#{RUBY_VERSION}'
-USERID = '2507715'
-API_URI_BASE = 'http://api.photozou.jp/rest/'
-USER   = ''
-PASSWD = ''
 
-
-
-class Nokogiri::XML::Node
-  TYPENAMES = {1=>'element',2=>'attribute',3=>'text',4=>'cdata',8=>'comment'}
-  def to_hash
-    {kind:TYPENAMES[node_type],name:name}.tap do |h|
-      h.merge! nshref:namespace.href, nsprefix:namespace.prefix if namespace
-      h.merge! text:text
-      h.merge! attr:attribute_nodes.map(&:to_hash) if element?
-      h.merge! kids:children.map(&:to_hash) if element?
-    end
-  end
-end
-class Nokogiri::XML::Document
-  def to_hash; root.to_hash; end
+begin
+  settings = YAML::load_file('../settings.yaml')
+rescue Exception => e
+  puts "Could not parse YAML: #{e.message}"
+  exit
 end
 
+USERID = settings['api_testing']['user_id'] 
+PHOTOID = settings['api_testing']['photo_id'] 
+ALBUMID = settings['api_testing']['album_id']
+NEEDS_BASIC_AUTH_FOR_ALL_REQUESTS = settings['api_testing']['needs_basic_auth_for_all_requests'] 
+
+API_URI_BASE =  settings['photozou']['api_uri_base']
+USER = settings['photozou']['user']
+PASSWD = settings['photozou']['passwd']
 
 class PhotozouHelper
   def self.hashToHttpStr hash
@@ -55,8 +52,7 @@ class PhotozouHelper
   end
 
   def self.needsAutentification(endpointName)
-    if endpointName == 'photo_add' || 
-       endpointName == 'nop'
+    if endpointName == 'photo_add'
       return true
     else
       return false
@@ -102,8 +98,13 @@ class Photozou
       
       else # GET Requests
         uri = API_URI_BASE + endpointName + "?" + PhotozouHelper.hashToHttpStr(args)
-
-        return Nokogiri::XML open(uri, "User-Agent" => AGENT)
+        
+        if NEEDS_BASIC_AUTH_FOR_ALL_REQUESTS
+          return Nokogiri::XML open(uri, {:http_basic_authentication => [USER, PASSWD], 
+                                          "User-Agent" => AGENT})
+        else
+          return Nokogiri::XML open(uri, "User-Agent" => AGENT)
+        end
       end
     rescue OpenURI::HTTPError => error
       PhotozouHelper.printError(endpointName, PhotozouHelper.hashToHttpStr(args), error)
@@ -134,7 +135,7 @@ class Photozou
   def self.photo_info args
     response = Photozou.callApi(PhotozouHelper.getCurrentMethodName, args)
     if response
-      response.at_xpath("//rsp//info//photo").children.inject({}) {|h, e| h[e.name.to_sym] = e.text; h}
+     response.at_xpath("//rsp//info//photo").children.inject({}) {|h, e| h[e.name.to_sym] = e.text; h}
     end  
   end
 
@@ -145,8 +146,8 @@ class Photozou
 
   def self.photo_list_public args
     response = Photozou.callApi(PhotozouHelper.getCurrentMethodName, args)     
-     
     photos = []
+
     response.at_xpath("//rsp//info").children.each do |x|
       photo = x.at_xpath("//photo").children.inject({}) {|h, e| h[e.name.to_sym] = e.text; h}
       photos << photo
@@ -173,17 +174,17 @@ class Photozou
   def self.xml_to_hash xml
  
     response = {}
-#    response[:photos] = Nokogiri::XML(xml).xpath("//rsp//info//photo").to_hash
+    #    response[:photos] = Nokogiri::XML(xml).xpath("//rsp//info//photo").to_hash
     response[:photos] = Nokogiri::XML(xml).to_hash
 
-#puts response[:photos]
-response[:photos].each do |p|
-   p.each do |b| 
-      puts b
+    #puts response[:photos]
+    response[:photos].each do |p|
+    p.each do |b| 
+      #puts b
       #puts "\n"
-   end
-  # break
-end
+    end
+    # break
+    end
     response[:photo_num] = Nokogiri::XML(xml).at_xpath("//rsp//info//photo_num").text.to_i
     response 
   end
@@ -200,9 +201,8 @@ end
 
   def self.photo_add args
     response = Photozou.callApi(PhotozouHelper.getCurrentMethodName, args) 
-    return false 
+    return response 
   end
-
 
   # Endpoint: http://api.photozou.jp/rest/nop  
   # 概要: 何もしません。ユーザー認証のテストをしたい時に使用して下さい。
@@ -211,13 +211,21 @@ end
 
   def self.nop
     response = Photozou.callApi(PhotozouHelper.getCurrentMethodName, {})         
-    
     if response.at_xpath("//rsp//info/user_id")
-      return response.at_xpath("//rsp//info/user_id").children  
+      return response.at_xpath("//rsp//info/user_id").children.text 
     else
       return false
     end
   end
+
+  # Endpoint: http://api.photozou.jp/rest/user_group  
+  # 概要: 友達グループの一覧を取得します。
+  # 認証: 認証の必要が必要です。
+  # HTTPメソッド: GET/POST
+
+  def self.user_group
+    response = Photozou.callApi(PhotozouHelper.getCurrentMethodName, {})         
+    return Hash.from_xml(response.to_s)
+  end
   
 end
-
