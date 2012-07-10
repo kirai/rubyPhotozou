@@ -85,7 +85,7 @@ class Photozou
           end
                  
           case res
-            when Net::HTTPSuccess, Net::HTTPRedirectionspec/photozouApi_spec.rb
+            when Net::HTTPSuccess, Net::HTTPRedirectionspec
               return Nokogiri::XML(res.body)
             else
               res.value  # TODO Handle response Error codes http://jp.rubyist.net/magazine/?0013-BundledLibraries
@@ -189,5 +189,14 @@ class Photozou
     response = Photozou.callApi(PhotozouHelper.getCurrentMethodName, {})         
     return Hash.from_xml(response.to_s)
   end
-  
+
+  # Endpoint: http://api.photozou.jp/rest/photo_delete
+  # 概要: 写真を削除します。
+  # 認証: 認証の必要が必要です。
+  # HTTPメソッド: /POST
+  def self.photo_delete
+    response = Photozou.callApi(PhotozouHelper.getCurrentMethodName, {})         
+    return Hash.from_xml(response.to_s)
+  end
+ 
 end

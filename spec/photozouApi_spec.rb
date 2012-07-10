@@ -87,4 +87,16 @@ describe "PhotozouApiClass" do
     end
   end
 
+  describe "Delete a picture POST request. delete_picture" do
+    it "should delete a picture" do
+      pictureName = 'testpicture.jpg'
+      pictureData = File.open(pictureName, "rb") {|io| io.read}
+
+      args = {"album_id" => ALBUMID,
+              "photo"    => pictureName}
+
+      response = Photozou.photo_add(args)
+      responseDelete = Photozou.photo_delete({"photo_id" => response['rsp']['photo_id']})
+    end
+  end
 end
