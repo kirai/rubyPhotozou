@@ -122,9 +122,7 @@ class Photozou
 
   def self.user_info args
     response = Photozou.callApi(PhotozouHelper.getCurrentMethodName, args)
-    if response
-      response.at_xpath("//rsp//info//user").children.inject({}) {|h, e| h[e.name.to_sym] = e.text if e.name != 'text'; h}
-    end
+    return Hash.from_xml(response.to_s)
   end
 
   # Endpoint: http://api.photozou.jp/rest/photo_info
@@ -134,9 +132,7 @@ class Photozou
 
   def self.photo_info args
     response = Photozou.callApi(PhotozouHelper.getCurrentMethodName, args)
-    if response
-     response.at_xpath("//rsp//info//photo").children.inject({}) {|h, e| h[e.name.to_sym] = e.text; h}
-    end  
+    return Hash.from_xml(response.to_s)
   end
 
   # Endpoint: http://api.photozou.jp/rest/photo_list_public  

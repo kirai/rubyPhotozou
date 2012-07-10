@@ -14,7 +14,7 @@ describe "PhotozouApiClass" do
 
     it "returns a hash of user_info data" do
       user_info = Photozou.user_info( { :user_id => USERID } )
-      user_info['user_id'].should == @user_info['user_id']
+      user_info['rsp']['info']['user_id'].should == @user_info['user_id']
     end
 
      #it "raises and exception when the parameters are not correct" do
@@ -23,7 +23,7 @@ describe "PhotozouApiClass" do
 
   end
 
-  describe "Photo Info GET" do
+  describe "Photo Info GET. photo_info" do
      before(:each) do
        @photo_info = {
             :photo_id => PHOTOID,
@@ -33,8 +33,8 @@ describe "PhotozouApiClass" do
      
      it "returns a hash with photo_info data" do 
         photo_info = Photozou.photo_info( { :photo_id => PHOTOID } )
-        photo_info['photo_id'].should == @photo_info['photo_id']
-        photo_info['copyright'].should == @photo_info['copyright']
+        photo_info['rsp']['info']['photo_id'].should == @photo_info['photo_id']
+        photo_info['rsp']['info']['copyright'].should == @photo_info['copyright']
      end
 
      #it "raises and exception when the parameters are not correct" do
