@@ -85,7 +85,7 @@ class Photozou
           end
                  
           case res
-            when Net::HTTPSuccess, Net::HTTPRedirection
+            when Net::HTTPSuccess, Net::HTTPRedirectionspec/photozouApi_spec.rb
               return Nokogiri::XML(res.body)
             else
               res.value  # TODO Handle response Error codes http://jp.rubyist.net/magazine/?0013-BundledLibraries
@@ -146,13 +146,7 @@ class Photozou
 
   def self.photo_list_public args
     response = Photozou.callApi(PhotozouHelper.getCurrentMethodName, args)     
-    photos = []
-
-    response.at_xpath("//rsp//info").children.each do |x|
-      photo = x.at_xpath("//photo").children.inject({}) {|h, e| h[e.name.to_sym] = e.text; h}
-      photos << photo
-    end
-    photos
+    return Hash.from_xml(response.to_s)
   end
 
   # Endpoint: http://api.photozou.jp/rest/search_public  
@@ -162,31 +156,7 @@ class Photozou
 
   def self.search_public args
     response = Photozou.callApi(PhotozouHelper.getCurrentMethodName, args)     
-        
-    photos = []
-    response.at_xpath("//rsp//info").children.each do |x|
-      photo = x.at_xpath("//photo").children.inject({}) {|h, e| h[e.name.to_sym] = e.text; h}
-      photos << photo
-    end
-    photos
-  end
-
-  def self.xml_to_hash xml
- 
-    response = {}
-    #    response[:photos] = Nokogiri::XML(xml).xpath("//rsp//info//photo").to_hash
-    response[:photos] = Nokogiri::XML(xml).to_hash
-
-    #puts response[:photos]
-    response[:photos].each do |p|
-    p.each do |b| 
-      #puts b
-      #puts "\n"
-    end
-    # break
-    end
-    response[:photo_num] = Nokogiri::XML(xml).at_xpath("//rsp//info//photo_num").text.to_i
-    response 
+    return Hash.from_xml(response.to_s)    
   end
 
   # Endpoint: http://api.photozou.jp/rest/photo_add  
@@ -201,7 +171,7 @@ class Photozou
 
   def self.photo_add args
     response = Photozou.callApi(PhotozouHelper.getCurrentMethodName, args) 
-    return response 
+    return Hash.from_xml(response.to_s) 
   end
 
   # Endpoint: http://api.photozou.jp/rest/nop  
@@ -211,11 +181,7 @@ class Photozou
 
   def self.nop
     response = Photozou.callApi(PhotozouHelper.getCurrentMethodName, {})         
-    if response.at_xpath("//rsp//info/user_id")
-      return response.at_xpath("//rsp//info/user_id").children.text 
-    else
-      return false
-    end
+    return Hash.from_xml(response.to_s)
   end
 
   # Endpoint: http://api.photozou.jp/rest/user_group  

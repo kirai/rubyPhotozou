@@ -43,31 +43,17 @@ describe "PhotozouApiClass" do
   end
 
   describe "Photo List Public GET. photo_list_public" do
-      before(:each) do
-        @photo_list = {
-          0 => {:photo_id => "140049756",
-                :album_id => "6712980" },
-          1 => {:photo_id => "139994143",
-                :album_id => "139994143" } 
-        }
-      end
-    
       it "returns a hash with photo list data" do
          args = { "type" => "album", 
                   "user_id" => USERID,
                   "album_id" => ALBUMID,
-                  "limit" => 5 }
+                  "limit" => '5' }
          photo_list = Photozou.photo_list_public(args)
-         #photo_list[0][:photo_id].should == @photo_list[0][:photo_id]
+         photo_list['rsp']['info']['photo_num'].should == args['limit'] 
       end
   end
 
   describe "Search Public GET. search_public" do
-    before(:each) do
-      @search_results = {}
-    end
-   
-    #TODO improve this test, make it more specific 
     it "return a hash with the search results" do
       args = { "keyword" => "tokyo" }
       response = Photozou.search_public(args)
@@ -89,35 +75,16 @@ describe "PhotozouApiClass" do
      end
   end
 
-  describe "nop ユーザー認証 test" do
+  describe "nop ユーザー認証 test. nop" do
     it "nop returns user_id if the user is logged in" do
-       Photozou.nop.should == USERID
+      Photozou.nop['rsp']['info']['user_id'].should == USERID
     end
   end
 
-  describe "user_group" do
+  describe "User groups GET request. user_group" do
     it "should get the group_id corresponding to a user" do
       Photozou.user_group['rsp']['info']['user_group'][2]['group_id'].should == '0'
     end
-  end
-
-  describe "Transform XML results to hash" do
-     # before (:each) do
-     #   @response = Photozou.xml_to_hash open("photozou_search_public_results.xml").read
-     # end
-
-     # it "returns a hash with the correct photo_num" do
-     #   @response[:photo_num].should == 100
-     # end
-
-     #it "returns a hash with an array of photos" do
-     #   @response[:photos].count.should == 100
-     # end
-    
-     #it "returns a hash for each photo in :photos" do
-     #   photo_hash_keys = [:photo_id, :user_id, :album_id, :photo_title, :date, :url, :original_imag_url]
-      #  photo_hash_keys.each {|key| @response[:photos][11].has_key?(key).should be_true }
-      #end
   end
 
 end
