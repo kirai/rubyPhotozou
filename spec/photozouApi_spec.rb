@@ -96,6 +96,7 @@ describe "PhotozouApiClass" do
               "photo"    => pictureName}
 
       response = Photozou.photo_add(args)
+      p response
       responseDelete = Photozou.photo_delete({"photo_id" => response['rsp']['photo_id']})
     end
   end

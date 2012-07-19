@@ -59,6 +59,22 @@ class PhotozouHelper
     end
   end
 
+  def self.isPostRequest(endpointName)
+    if endpointName == 'photo_delete'
+      return true
+    else
+      return false
+    end
+  end
+
+  def self.isMultipartPostRequest(endpointName)
+    if endpointName == 'photo_add'
+      return true
+    else
+      return false
+    end
+  end
+
 end
 
 class Photozou
@@ -72,13 +88,15 @@ class Photozou
     #image/png
     #image/x-png http://d.hatena.ne.jp/hygeta/20111105/1320494187
     begin
-      if PhotozouHelper.needsAutentification(endpointName) # POST Requests
+      if PhotozouHelper.isMultipartPostRequest(endpointName)
         uri    = API_URI_BASE + endpointName
         params = args
         
         url = URI.parse(uri)
         File.open(args['photo'], "rb") do |jpg|
-          req = Net::HTTP::Post::Multipart.new(url.path, {"photo" => UploadIO.new(jpg, "image/jpeg", args['photo']), "album_id" => args['album_id']})
+          req = Net::HTTP::Post::Multipart.new(url.path,
+                {"photo" => UploadIO.new(jpg, "image/jpeg", args['photo']),
+                 "album_id" => args['album_id']})
           req.basic_auth USER, PASSWD
           res = Net::HTTP.start(url.host, url.port) do |http|
             http.request(req)
@@ -91,12 +109,20 @@ class Photozou
               res.value  # TODO Handle response Error codes http://jp.rubyist.net/magazine/?0013-BundledLibraries
           end
         end
-
-#       Basic autentification for a GET request (Works for "nop"
-#        return Nokogiri::XML open(uri, {:http_basic_authentication => [USER, PASSWD], 
-#                                        "User-Agent" => AGENT}) 
+      elsif PhotozouHelper.isPostRequest(endpointName)
+        url = URI.parse(API_URI_BASE + endpointName)
+        req = Net::HTTP::Post.new(url.path)
+        req.basic_auth USER, PASSWD
+        req.set_form_data(args)
+        res = Net::HTTP.new(url.host, url.port).start {|http| http.request(req) }
+        case res
+          when Net::HTTPSuccess, Net::HTTPRedirection
+            return Nokogiri::XML(res.body)
+          else
+            res.value
+        end 
       
-      else # GET Requests
+      else
         uri = API_URI_BASE + endpointName + "?" + PhotozouHelper.hashToHttpStr(args)
         
         if NEEDS_BASIC_AUTH_FOR_ALL_REQUESTS
