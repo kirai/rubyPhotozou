@@ -99,4 +99,11 @@ describe "PhotozouApiClass" do
       responseDelete = Photozou.photo_delete({"photo_id" => response['rsp']['photo_id']})
     end
   end
+
+  describe "Get comments made on a user photos. photo_comment" do
+    it "should get comments made on a user" do
+      response = Photozou.photo_comment({"user_id" => '3278472384782374'})
+      response.should_not be_empty
+    end
+  end
 end

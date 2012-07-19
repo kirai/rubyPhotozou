@@ -52,7 +52,7 @@ class PhotozouHelper
   end
 
   def self.needsAutentification(endpointName)
-    if endpointName == 'photo_add'
+    if endpointName == 'photo_add' || enpointName == 'photo_delete'
       return true
     else
       return false
@@ -128,7 +128,7 @@ class Photozou
       else
         uri = API_URI_BASE + endpointName + "?" + PhotozouHelper.hashToHttpStr(args)
         
-        if NEEDS_BASIC_AUTH_FOR_ALL_REQUESTS
+        if NEEDS_BASIC_AUTH_FOR_ALL_REQUESTS || PhotozouHelper.needsAutentification(endpointName) 
           return Nokogiri::XML open(uri, {:http_basic_authentication => [USER, PASSWD], 
                                           "User-Agent" => AGENT})
         else
@@ -211,7 +211,7 @@ class Photozou
 
   # Endpoint: http://api.photozou.jp/rest/user_group  
   # 概要: 友達グループの一覧を取得します。
-  # 認証: 認証の必要が必要です。
+  # 認証: 認証の必要です。
   # HTTPメソッド: GET/POST
 
   def self.user_group
@@ -224,6 +224,16 @@ class Photozou
   # 認証: 認証の必要が必要です。
   # HTTPメソッド: /POST
   def self.photo_delete args
+    response = Photozou.callApi(PhotozouHelper.getCurrentMethodName, args)
+    return Hash.from_xml(response.to_s)
+  end
+
+  # Endpoint: http://api.photozou.jp/rest/photo_comment
+  # 概要: 写真につけられているコメント最新1000件を取得します。
+  # 認証: 認証の必要です。
+  # HTTPメソッド: GET
+
+  def self.photo_comment args
     response = Photozou.callApi(PhotozouHelper.getCurrentMethodName, args)
     return Hash.from_xml(response.to_s)
   end
