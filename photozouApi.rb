@@ -79,6 +79,10 @@ end
 
 class Photozou
 
+  # Generic call encapsulating all POST/Get requests
+  # Decides how to send the request to the server (POST, Multipart or GET)
+  # depending on the endpointName and the arguments
+  
   def self.callApi(endpointName, args)
     #TODO: handle the correct content_types for the photo upload
     #画像をアップロードする場合は、次のいずれかを指定します。
@@ -106,7 +110,7 @@ class Photozou
             when Net::HTTPSuccess, Net::HTTPRedirectionspec
               return Nokogiri::XML(res.body)
             else
-              res.value  # TODO Handle response Error codes http://jp.rubyist.net/magazine/?0013-BundledLibraries
+              res.value
           end
         end
       elsif PhotozouHelper.isPostRequest(endpointName)
@@ -121,7 +125,6 @@ class Photozou
           else
             res.value
         end 
-      
       else
         uri = API_URI_BASE + endpointName + "?" + PhotozouHelper.hashToHttpStr(args)
         
@@ -220,8 +223,8 @@ class Photozou
   # 概要: 写真を削除します。
   # 認証: 認証の必要が必要です。
   # HTTPメソッド: /POST
-  def self.photo_delete
-    response = Photozou.callApi(PhotozouHelper.getCurrentMethodName, {})         
+  def self.photo_delete args
+    response = Photozou.callApi(PhotozouHelper.getCurrentMethodName, args)
     return Hash.from_xml(response.to_s)
   end
  
