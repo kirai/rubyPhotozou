@@ -237,5 +237,29 @@ class Photozou
     response = Photozou.callApi(PhotozouHelper.getCurrentMethodName, args)
     return Hash.from_xml(response.to_s)
   end
- 
+
+
+  #TODO
+  def self.photo_add_album args
+    response = Photozou.callApi(PhotozouHelper.getCurrentMethodName, args)
+    return Hash.from_xml(response.to_s)
+  end
+  def self.photo_add_tag args
+    response = Photozou.callApi(PhotozouHelper.getCurrentMethodName, args)
+    return Hash.from_xml(response.to_s)
+  end
+  def self.photo_album args
+    response = Photozou.callApi(PhotozouHelper.getCurrentMethodName, args)
+    return Hash.from_xml(response.to_s)
+  end
+  def self.photo_edit_album args
+    response = Photozou.callApi(PhotozouHelper.getCurrentMethodName, args)
+    return Hash.from_xml(response.to_s)
+  end
+  def self.photo_list_public args
+    response = Photozou.callApi(PhotozouHelper.getCurrentMethodName, args)
+    return Hash.from_xml(response.to_s)
+  end
+
+
 end
