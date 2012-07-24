@@ -27,3 +27,18 @@ http://photozou.jp/basic/api
 
 ## Rubyからの使いかた
 
+基本の形は⬇
+Photozou.method_name(arguments)
+
+method_nameはhttp://photozou.jp/basic/apiの通りにないります。
+argumentsはhttp://photozou.jp/basic/apiの客メゾッドの仕様通となります。
+
+例：
+
+  * キーワード検索：
+
+     require 'photozouAPI.rb'
+     args = { "keyword" => "tokyo" }
+     response = Photozou.search_public(args)
+     p response
+     
