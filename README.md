@@ -37,8 +37,8 @@ argumentsはhttp://photozou.jp/basic/apiの客メゾッドの仕様通となり�
 
   * キーワード検索：
 
-    require 'photozouAPI.rb'
-    args = { "keyword" => "tokyo" }
-    response = Photozou.search_public(args)
-    p response
+          require 'photozouAPI.rb'
+          args = { "keyword" => "tokyo" }
+          response = Photozou.search_public(args)
+          p response
      
